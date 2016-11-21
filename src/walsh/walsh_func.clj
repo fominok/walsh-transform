@@ -3,6 +3,9 @@
             [clojure.core.matrix.operators :refer :all]
             [clojure.string :as string]))
 
+(defn log2 [x]
+  (/ (Math/log x) (Math/log 2)))
+
 (defn hadamard-matrix-seq
   "Generates Hadamard matrix 2^n sequence, where n->inf"
   ([] (hadamard-matrix-seq [[1]]))
@@ -35,3 +38,18 @@
   "Get nth Walsh function"
   [n ord]
   (map int (nth (nth (hadamard-matrix-seq) (dec ord)) (walsh-access n ord))))
+
+(defn walsh-coeffs
+  "Get Walsh coefficients for discrete signal"
+  [signal]
+  (let [len (count signal)
+        logbase2 (int (Math/ceil (log2 len)))]
+    (map #(int (div (mmul signal (walsh-nth % logbase2)) len)) (range len))))
+
+(defn restore-signal
+  "Get signal from Walsh coefficients"
+  [coeffs]
+  (let [len (count coeffs)
+        logbase2 (int (Math/ceil (log2 len)))]
+    (map #(int (mmul coeffs (walsh-nth % logbase2)) ) (range len))))
+
