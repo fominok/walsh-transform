@@ -1,7 +1,8 @@
 (ns walsh.walsh-func
   (:require [clojure.core.matrix :refer :all]
             [clojure.core.matrix.operators :refer :all]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [walsh.limiters :as lim]))
 
 (defn log2 [x]
   (/ (Math/log x) (Math/log 2)))
@@ -44,12 +45,18 @@
   [signal]
   (let [len (count signal)
         logbase2 (int (Math/ceil (log2 len)))]
-    (map #(int (div (mmul signal (walsh-nth % logbase2)) len)) (range len))))
+    (pmap #(int (div (mmul signal (walsh-nth % logbase2)) len)) (range len))))
 
 (defn restore-signal
   "Get signal from Walsh coefficients"
   [coeffs]
   (let [len (count coeffs)
         logbase2 (int (Math/ceil (log2 len)))]
-    (map #(int (mmul coeffs (walsh-nth % logbase2)) ) (range len))))
+    (pmap #(int (mmul coeffs (walsh-nth % logbase2)) ) (range len))))
 
+(defn limited-walsh-coeffs
+  "Get Walsh coefficients for discrete signal limiting `registers' to nbits with limf function"
+  [signal limf nbits]
+  (let [len (count signal)
+        logbase2 (int (Math/ceil (log2 len)))]
+    (pmap #(int (div (limf (mmul signal (walsh-nth % logbase2)) nbits) len)) (range len))))
